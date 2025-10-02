@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /dl/
+
+# Don't rewrite assets (CSS, JS, images)
+RewriteCond %{REQUEST_URI} ^/dl/assets/
+RewriteRule ^ - [L]
+
+# Redirect all other requests to public folder
+RewriteCond %{REQUEST_URI} !^/dl/public/
+RewriteRule ^(.*)$ public/$1 [L]
