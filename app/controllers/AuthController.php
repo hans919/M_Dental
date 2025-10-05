@@ -11,7 +11,7 @@ class AuthController extends Controller {
         // If already logged in, redirect based on role
         if ($this->isLoggedIn()) {
             if ($_SESSION['role'] === 'patient') {
-                $this->redirect('patient_dashboard');
+                $this->redirect('landing');
             } else {
                 $this->redirect('home');
             }
@@ -35,7 +35,7 @@ class AuthController extends Controller {
                 
                 // Redirect based on role
                 if ($user->role === 'patient') {
-                    $this->redirect('patient_dashboard');
+                    $this->redirect('landing');
                 } else {
                     $this->redirect('home');
                 }
@@ -56,7 +56,7 @@ class AuthController extends Controller {
         // If already logged in, redirect based on role
         if ($this->isLoggedIn()) {
             if ($_SESSION['role'] === 'patient') {
-                $this->redirect('patient_dashboard');
+                $this->redirect('landing');
             } else {
                 $this->redirect('home');
             }
@@ -128,8 +128,8 @@ class AuthController extends Controller {
                     $_SESSION['first_name'] = $user->first_name;
                     $_SESSION['last_name'] = $user->last_name;
                     
-                    // Redirect to patient dashboard
-                    $this->redirect('patient_dashboard');
+                    // Redirect to landing page
+                    $this->redirect('landing');
                 } else {
                     $errors[] = 'Registration failed. Please try again.';
                 }
