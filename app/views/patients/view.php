@@ -17,10 +17,12 @@
                 <i data-lucide="arrow-left"></i>
                 Back to List
             </a>
-            <a href="<?php echo APP_URL; ?>/public/patient/edit/<?php echo $data['patient']->id; ?>" class="btn btn-primary">
-                <i data-lucide="edit-3"></i>
-                Edit Profile
-            </a>
+            <?php if ($data['patient']->source == 'patient_table'): ?>
+                <a href="<?php echo APP_URL; ?>/public/patient/edit/<?php echo $data['patient']->id; ?>" class="btn btn-primary">
+                    <i data-lucide="edit-3"></i>
+                    Edit Profile
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -45,31 +47,38 @@
             <div class="profile-name-section">
                 <h1 class="profile-name">
                     <?php echo htmlspecialchars($data['patient']->first_name . ' ' . $data['patient']->last_name); ?>
+                    <?php if ($data['patient']->source == 'user_table'): ?>
+                        <span class="badge badge-info" style="font-size: 0.8rem; margin-left: 0.5rem;">Registered User</span>
+                    <?php endif; ?>
                 </h1>
                 <p class="profile-id">Patient ID: <span><?php echo $data['patient']->patient_code; ?></span></p>
             </div>
             
             <div class="profile-quick-stats">
-                <div class="quick-stat">
-                    <i data-lucide="calendar"></i>
-                    <div>
-                        <span class="stat-label">Age</span>
-                        <span class="stat-value">
-                            <?php 
-                                $birthDate = new DateTime($data['patient']->date_of_birth);
-                                $today = new DateTime('today');
-                                echo $birthDate->diff($today)->y . ' years';
-                            ?>
-                        </span>
+                <?php if ($data['patient']->date_of_birth): ?>
+                    <div class="quick-stat">
+                        <i data-lucide="calendar"></i>
+                        <div>
+                            <span class="stat-label">Age</span>
+                            <span class="stat-value">
+                                <?php 
+                                    $birthDate = new DateTime($data['patient']->date_of_birth);
+                                    $today = new DateTime('today');
+                                    echo $birthDate->diff($today)->y . ' years';
+                                ?>
+                            </span>
+                        </div>
                     </div>
-                </div>
-                <div class="quick-stat">
-                    <i data-lucide="users"></i>
-                    <div>
-                        <span class="stat-label">Gender</span>
-                        <span class="stat-value"><?php echo ucfirst($data['patient']->gender); ?></span>
+                <?php endif; ?>
+                <?php if ($data['patient']->gender): ?>
+                    <div class="quick-stat">
+                        <i data-lucide="users"></i>
+                        <div>
+                            <span class="stat-label">Gender</span>
+                            <span class="stat-value"><?php echo ucfirst($data['patient']->gender); ?></span>
+                        </div>
                     </div>
-                </div>
+                <?php endif; ?>
                 <div class="quick-stat">
                     <i data-lucide="droplet"></i>
                     <div>
@@ -108,25 +117,29 @@
         </div>
         <div class="card-content">
             <div class="detail-list">
-                <div class="detail-item">
-                    <div class="detail-icon">
-                        <i data-lucide="calendar"></i>
+                <?php if ($data['patient']->date_of_birth): ?>
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i data-lucide="calendar"></i>
+                        </div>
+                        <div class="detail-content">
+                            <span class="detail-label">Date of Birth</span>
+                            <span class="detail-value"><?php echo date('F j, Y', strtotime($data['patient']->date_of_birth)); ?></span>
+                        </div>
                     </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Date of Birth</span>
-                        <span class="detail-value"><?php echo date('F j, Y', strtotime($data['patient']->date_of_birth)); ?></span>
-                    </div>
-                </div>
+                <?php endif; ?>
                 
-                <div class="detail-item">
-                    <div class="detail-icon">
-                        <i data-lucide="users"></i>
+                <?php if ($data['patient']->gender): ?>
+                    <div class="detail-item">
+                        <div class="detail-icon">
+                            <i data-lucide="users"></i>
+                        </div>
+                        <div class="detail-content">
+                            <span class="detail-label">Gender</span>
+                            <span class="detail-value"><?php echo ucfirst($data['patient']->gender); ?></span>
+                        </div>
                     </div>
-                    <div class="detail-content">
-                        <span class="detail-label">Gender</span>
-                        <span class="detail-value"><?php echo ucfirst($data['patient']->gender); ?></span>
-                    </div>
-                </div>
+                <?php endif; ?>
                 
                 <div class="detail-item">
                     <div class="detail-icon">
@@ -137,6 +150,14 @@
                         <span class="detail-value"><?php echo date('F j, Y', strtotime($data['patient']->created_at)); ?></span>
                     </div>
                 </div>
+                
+                <?php if (!$data['patient']->date_of_birth && !$data['patient']->gender): ?>
+                    <div class="detail-item">
+                        <div class="detail-content" style="padding-left: 0;">
+                            <span class="text-muted">Limited profile information available for registered users.</span>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

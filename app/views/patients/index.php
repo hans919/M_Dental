@@ -265,6 +265,9 @@
                                         <div class="table-cell-content">
                                             <div class="table-cell-title">
                                                 <?php echo $patient->first_name . ' ' . $patient->last_name; ?>
+                                                <?php if ($patient->source == 'user_table'): ?>
+                                                    <span class="badge badge-info" style="font-size: 0.7rem; margin-left: 0.5rem;">Registered User</span>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="table-cell-subtitle">
                                                 <i data-lucide="hash" style="width: 12px; height: 12px;"></i>
@@ -275,23 +278,32 @@
                                 </td>
                                 <td>
                                     <div class="table-cell-content">
-                                        <div class="table-cell-row">
-                                            <i data-lucide="phone" style="width: 14px; height: 14px; color: hsl(var(--muted-foreground));"></i>
-                                            <span><?php echo $patient->phone; ?></span>
-                                        </div>
+                                        <?php if ($patient->phone): ?>
+                                            <div class="table-cell-row">
+                                                <i data-lucide="phone" style="width: 14px; height: 14px; color: hsl(var(--muted-foreground));"></i>
+                                                <span><?php echo $patient->phone; ?></span>
+                                            </div>
+                                        <?php endif; ?>
                                         <?php if ($patient->email): ?>
                                             <div class="table-cell-row">
                                                 <i data-lucide="mail" style="width: 14px; height: 14px; color: hsl(var(--muted-foreground));"></i>
                                                 <span class="table-cell-subtitle"><?php echo $patient->email; ?></span>
                                             </div>
                                         <?php endif; ?>
+                                        <?php if (!$patient->phone && !$patient->email): ?>
+                                            <span class="table-cell-subtitle">No contact info</span>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="gender-badge gender-<?php echo $patient->gender; ?>">
-                                        <i data-lucide="<?php echo $patient->gender == 'male' ? 'user' : 'user'; ?>" style="width: 14px; height: 14px;"></i>
-                                        <span><?php echo ucfirst($patient->gender); ?></span>
-                                    </div>
+                                    <?php if ($patient->gender): ?>
+                                        <div class="gender-badge gender-<?php echo $patient->gender; ?>">
+                                            <i data-lucide="<?php echo $patient->gender == 'male' ? 'user' : 'user'; ?>" style="width: 14px; height: 14px;"></i>
+                                            <span><?php echo ucfirst($patient->gender); ?></span>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="table-cell-subtitle">Not specified</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <span class="badge badge-<?php echo $patient->status == 'active' ? 'success' : 'error'; ?>">
@@ -301,15 +313,19 @@
                                 </td>
                                 <td>
                                     <div class="table-actions" style="justify-content: flex-end;">
-                                        <a href="<?php echo APP_URL; ?>/public/patient/detail/<?php echo $patient->id; ?>" class="btn-icon" title="View Details">
+                                        <a href="<?php echo APP_URL; ?>/public/patient/detail/<?php echo $patient->id; ?>?source=<?php echo $patient->source; ?>" class="btn-icon" title="View Details">
                                             <i data-lucide="eye"></i>
                                         </a>
-                                        <a href="<?php echo APP_URL; ?>/public/patient/edit/<?php echo $patient->id; ?>" class="btn-icon" title="Edit Patient">
-                                            <i data-lucide="pencil"></i>
-                                        </a>
-                                        <button class="btn-icon btn-icon-danger" title="Delete Patient" onclick="confirmDelete(<?php echo $patient->id; ?>)">
-                                            <i data-lucide="trash-2"></i>
-                                        </button>
+                                        <?php if ($patient->source == 'patient_table'): ?>
+                                            <a href="<?php echo APP_URL; ?>/public/patient/edit/<?php echo $patient->id; ?>" class="btn-icon" title="Edit Patient">
+                                                <i data-lucide="pencil"></i>
+                                            </a>
+                                            <button class="btn-icon btn-icon-danger" title="Delete Patient" onclick="confirmDelete(<?php echo $patient->id; ?>)">
+                                                <i data-lucide="trash-2"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <span class="table-cell-subtitle" style="font-size: 0.75rem; padding: 0 0.5rem;">User Account</span>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>

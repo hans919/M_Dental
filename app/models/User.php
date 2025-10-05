@@ -75,4 +75,59 @@ class User {
         $this->db->bind(':id', $id);
         return $this->db->single();
     }
+    
+    // Get user profile (excludes sensitive data)
+    public function getUserProfile($id) {
+        $this->db->query("SELECT id, username, email, first_name, last_name, role, phone, created_at 
+                         FROM users WHERE id = :id");
+        $this->db->bind(':id', $id);
+        return $this->db->single();
+    }
+    
+    // Update user profile
+    public function updateProfile($id, $data) {
+        $this->db->query("UPDATE users 
+                         SET first_name = :first_name,
+                             last_name = :last_name,
+                             email = :email,
+                             phone = :phone
+                         WHERE id = :id");
+        
+        $this->db->bind(':id', $id);
+        $this->db->bind(':first_name', $data['first_name']);
+        $this->db->bind(':last_name', $data['last_name']);
+        $this->db->bind(':email', $data['email']);
+        $this->db->bind(':phone', $data['phone']);
+        
+        return $this->db->execute();
+    }
+    
+    // Update password
+    public function updatePassword($id, $newPassword) {
+        $this->db->query("UPDATE users SET password = :password WHERE id = :id");
+        $this->db->bind(':id', $id);
+        $this->db->bind(':password', password_hash($newPassword, PASSWORD_DEFAULT));
+        
+        return $this->db->execute();
+    }
+    
+    // Verify current password
+    public function verifyPassword($id, $password) {
+        $this->db->query("SELECT password FROM users WHERE id = :id");
+        $this->db->bind(':id', $id);
+        $user = $this->db->single();
+        
+        if ($user && password_verify($password, $user->password)) {
+            return true;
+        }
+        return false;
+    }
+    
+    // Check if email exists (excluding current user)
+    public function emailExistsExcludingUser($email, $userId) {
+        $this->db->query("SELECT id FROM users WHERE email = :email AND id != :user_id");
+        $this->db->bind(':email', $email);
+        $this->db->bind(':user_id', $userId);
+        return $this->db->single() ? true : false;
+    }
 }

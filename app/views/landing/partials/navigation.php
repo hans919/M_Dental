@@ -2,16 +2,18 @@
     <nav class="landing-nav">
         <div class="nav-container">
             <div class="nav-brand">
-                <div class="brand-icon">
-                    <i data-lucide="heart-pulse"></i>
-                </div>
-                <span class="brand-name">DentalCare Clinic</span>
+                <a href="<?php echo APP_URL; ?>/public/landing" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
+                    <div class="brand-icon">
+                        <i data-lucide="heart-pulse"></i>
+                    </div>
+                    <span class="brand-name">DentalCare Clinic</span>
+                </a>
             </div>
             <div class="nav-menu">
-                <a href="#home" class="nav-link active">Home</a>
-                <a href="#services" class="nav-link">Services</a>
-                <a href="#about" class="nav-link">About Us</a>
-                <a href="#contact" class="nav-link">Contact</a>
+                <a href="<?php echo APP_URL; ?>/public/landing#home" class="nav-link">Home</a>
+                <a href="<?php echo APP_URL; ?>/public/landing#services" class="nav-link">Services</a>
+                <a href="<?php echo APP_URL; ?>/public/landing#about" class="nav-link">About Us</a>
+                <a href="<?php echo APP_URL; ?>/public/landing#contact" class="nav-link">Contact</a>
             </div>
             <div class="nav-actions">
                 <?php if (isset($_SESSION['user_id'])): ?>
@@ -44,6 +46,10 @@
                                     <a href="<?php echo APP_URL; ?>/public/patient_dashboard/book" class="dropdown-item">
                                         <i data-lucide="calendar-plus"></i>
                                         Book Appointment
+                                    </a>
+                                    <a href="<?php echo APP_URL; ?>/public/patient_dashboard/records" class="dropdown-item">
+                                        <i data-lucide="file-text"></i>
+                                        Medical Records
                                     </a>
                                     <a href="<?php echo APP_URL; ?>/public/patient_dashboard/profile" class="dropdown-item">
                                         <i data-lucide="user"></i>

@@ -126,26 +126,143 @@ class PatientDashboardController extends Controller {
     
     // View profile
     public function profile() {
-        $data = [
-            'title' => 'My Profile',
-            'user' => [
-                'first_name' => $_SESSION['first_name'] ?? '',
-                'last_name' => $_SESSION['last_name'] ?? '',
-                'username' => $_SESSION['username'] ?? '',
-                'email' => $_SESSION['email'] ?? ''
-            ]
-        ];
+        $userModel = $this->model('User');
         
-        $this->view('patient_dashboard/profile', $data);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Handle profile update
+            $errors = [];
+            
+            // Get form data
+            $first_name = trim($_POST['first_name']);
+            $last_name = trim($_POST['last_name']);
+            $email = trim($_POST['email']);
+            $phone = trim($_POST['phone'] ?? '');
+            $current_password = trim($_POST['current_password'] ?? '');
+            $new_password = trim($_POST['new_password'] ?? '');
+            $confirm_password = trim($_POST['confirm_password'] ?? '');
+            
+            // Validate basic info
+            if (empty($first_name)) {
+                $errors[] = 'First name is required';
+            }
+            if (empty($last_name)) {
+                $errors[] = 'Last name is required';
+            }
+            if (empty($email)) {
+                $errors[] = 'Email is required';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = 'Invalid email format';
+            } else {
+                // Check if email already exists for another user
+                if ($userModel->emailExistsExcludingUser($email, $_SESSION['user_id'])) {
+                    $errors[] = 'Email is already taken by another user';
+                }
+            }
+            
+            // Validate password change if provided
+            if (!empty($current_password) || !empty($new_password) || !empty($confirm_password)) {
+                if (empty($current_password)) {
+                    $errors[] = 'Please enter your current password to change your password';
+                } elseif (!$userModel->verifyPassword($_SESSION['user_id'], $current_password)) {
+                    $errors[] = 'Current password is incorrect';
+                }
+                
+                if (empty($new_password)) {
+                    $errors[] = 'Please enter a new password';
+                } elseif (strlen($new_password) < 6) {
+                    $errors[] = 'New password must be at least 6 characters';
+                }
+                
+                if ($new_password !== $confirm_password) {
+                    $errors[] = 'New passwords do not match';
+                }
+            }
+            
+            // Update profile if no errors
+            if (empty($errors)) {
+                $profileData = [
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'email' => $email,
+                    'phone' => $phone
+                ];
+                
+                if ($userModel->updateProfile($_SESSION['user_id'], $profileData)) {
+                    // Update session variables
+                    $_SESSION['first_name'] = $first_name;
+                    $_SESSION['last_name'] = $last_name;
+                    $_SESSION['email'] = $email;
+                    
+                    // Update password if provided
+                    if (!empty($new_password)) {
+                        $userModel->updatePassword($_SESSION['user_id'], $new_password);
+                        $_SESSION['success'] = 'Profile and password updated successfully!';
+                    } else {
+                        $_SESSION['success'] = 'Profile updated successfully!';
+                    }
+                    
+                    $this->redirect('patient_dashboard/profile');
+                } else {
+                    $errors[] = 'Failed to update profile. Please try again.';
+                }
+            }
+            
+            // If there are errors, show form with errors
+            $user = $userModel->getUserProfile($_SESSION['user_id']);
+            $data = [
+                'title' => 'My Profile',
+                'user' => [
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'username' => $user->username,
+                    'email' => $email,
+                    'phone' => $phone
+                ],
+                'errors' => $errors
+            ];
+            
+            $this->view('patient_dashboard/profile', $data);
+        } else {
+            // Load profile data
+            $user = $userModel->getUserProfile($_SESSION['user_id']);
+            
+            $data = [
+                'title' => 'My Profile',
+                'user' => [
+                    'first_name' => $user->first_name ?? '',
+                    'last_name' => $user->last_name ?? '',
+                    'username' => $user->username ?? '',
+                    'email' => $user->email ?? '',
+                    'phone' => $user->phone ?? ''
+                ]
+            ];
+            
+            $this->view('patient_dashboard/profile', $data);
+        }
     }
     
     // View medical records
     public function records() {
+        // TODO: Connect to actual medical records database tables
+        // For now, showing structure with placeholder data
+        
         $data = [
-            'title' => 'Medical Records'
+            'title' => 'Medical Records',
+            'total_visits' => 0,
+            'total_treatments' => 0,
+            'total_prescriptions' => 0,
+            'last_visit' => null,
+            'treatments' => [],
+            'prescriptions' => [],
+            'notes' => []
         ];
         
-        // TODO: Fetch patient's medical records
+        // TODO: Replace with actual database queries
+        // Example queries to implement:
+        // $appointmentModel = $this->model('Appointment');
+        // $data['total_visits'] = $appointmentModel->countCompletedAppointments($_SESSION['user_id']);
+        // $data['treatments'] = $treatmentModel->getTreatmentsByUserId($_SESSION['user_id']);
+        // $data['prescriptions'] = $prescriptionModel->getPrescriptionsByUserId($_SESSION['user_id']);
         
         $this->view('patient_dashboard/records', $data);
     }

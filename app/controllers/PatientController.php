@@ -32,7 +32,10 @@ class PatientController extends Controller {
         $patientModel = $this->model('Patient');
         $appointmentModel = $this->model('Appointment');
         
-        $patient = $patientModel->getPatientById($id);
+        // Get source from query parameter
+        $source = isset($_GET['source']) ? $_GET['source'] : null;
+        
+        $patient = $patientModel->getPatientById($id, $source);
         
         if (!$patient) {
             $this->redirect('patient');

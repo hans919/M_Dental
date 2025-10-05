@@ -7,36 +7,179 @@ class Patient {
         $this->db = new Database();
     }
     
-    // Get all patients
+    // Get all patients (from patients table + users with patient role)
     public function getPatients($limit = null, $offset = 0) {
-        $sql = "SELECT * FROM patients ORDER BY created_at DESC";
+        $sql = "SELECT 
+                    p.id,
+                    p.patient_code,
+                    p.first_name,
+                    p.last_name,
+                    p.date_of_birth,
+                    p.gender,
+                    p.phone,
+                    p.email,
+                    p.address,
+                    p.status,
+                    p.created_at,
+                    'patient_table' as source
+                FROM patients p
+                WHERE p.status = 'active'
+                
+                UNION ALL
+                
+                SELECT 
+                    u.id,
+                    CONCAT('USR-', u.id) as patient_code,
+                    u.first_name,
+                    u.last_name,
+                    NULL as date_of_birth,
+                    NULL as gender,
+                    u.phone,
+                    u.email,
+                    NULL as address,
+                    'active' as status,
+                    u.created_at,
+                    'user_table' as source
+                FROM users u
+                WHERE u.role = 'patient'
+                AND u.id NOT IN (
+                    SELECT user_id FROM patients WHERE user_id IS NOT NULL
+                )
+                
+                ORDER BY created_at DESC";
+                
         if ($limit) {
             $sql .= " LIMIT :limit OFFSET :offset";
         }
+        
         $this->db->query($sql);
+        
         if ($limit) {
             $this->db->bind(':limit', $limit);
             $this->db->bind(':offset', $offset);
         }
+        
         return $this->db->resultSet();
     }
     
-    // Get patient by ID
-    public function getPatientById($id) {
-        $this->db->query("SELECT * FROM patients WHERE id = :id");
+    // Get patient by ID (check both patients table and users table)
+    public function getPatientById($id, $source = null) {
+        // If source is specified, query that specific table
+        if ($source === 'user_table') {
+            $this->db->query("SELECT 
+                                u.id,
+                                CONCAT('USR-', u.id) as patient_code,
+                                u.first_name,
+                                u.last_name,
+                                NULL as date_of_birth,
+                                NULL as gender,
+                                u.phone,
+                                u.email,
+                                NULL as address,
+                                NULL as emergency_contact_name,
+                                NULL as emergency_contact_phone,
+                                NULL as blood_type,
+                                NULL as allergies,
+                                NULL as medical_conditions,
+                                NULL as profile_photo,
+                                'active' as status,
+                                u.created_at,
+                                u.updated_at,
+                                'user_table' as source
+                            FROM users u
+                            WHERE u.id = :id AND u.role = 'patient'");
+            $this->db->bind(':id', $id);
+            return $this->db->single();
+        }
+        
+        // Otherwise, check patients table first
+        $this->db->query("SELECT *, 'patient_table' as source FROM patients WHERE id = :id");
         $this->db->bind(':id', $id);
-        return $this->db->single();
+        $patient = $this->db->single();
+        
+        // If not found in patients table, check if it's a user
+        if (!$patient) {
+            $this->db->query("SELECT 
+                                u.id,
+                                CONCAT('USR-', u.id) as patient_code,
+                                u.first_name,
+                                u.last_name,
+                                NULL as date_of_birth,
+                                NULL as gender,
+                                u.phone,
+                                u.email,
+                                NULL as address,
+                                NULL as emergency_contact_name,
+                                NULL as emergency_contact_phone,
+                                NULL as blood_type,
+                                NULL as allergies,
+                                NULL as medical_conditions,
+                                NULL as profile_photo,
+                                'active' as status,
+                                u.created_at,
+                                u.updated_at,
+                                'user_table' as source
+                            FROM users u
+                            WHERE u.id = :id AND u.role = 'patient'");
+            $this->db->bind(':id', $id);
+            $patient = $this->db->single();
+        }
+        
+        return $patient;
     }
     
-    // Search patients
+    // Search patients (from both tables)
     public function searchPatients($search) {
-        $this->db->query("SELECT * FROM patients 
-                         WHERE patient_code LIKE :search 
-                         OR first_name LIKE :search 
-                         OR last_name LIKE :search 
-                         OR phone LIKE :search 
-                         OR email LIKE :search
-                         ORDER BY created_at DESC");
+        $sql = "SELECT 
+                    p.id,
+                    p.patient_code,
+                    p.first_name,
+                    p.last_name,
+                    p.date_of_birth,
+                    p.gender,
+                    p.phone,
+                    p.email,
+                    p.address,
+                    p.status,
+                    p.created_at,
+                    'patient_table' as source
+                FROM patients p
+                WHERE (p.patient_code LIKE :search 
+                    OR p.first_name LIKE :search 
+                    OR p.last_name LIKE :search 
+                    OR p.phone LIKE :search 
+                    OR p.email LIKE :search)
+                AND p.status = 'active'
+                
+                UNION ALL
+                
+                SELECT 
+                    u.id,
+                    CONCAT('USR-', u.id) as patient_code,
+                    u.first_name,
+                    u.last_name,
+                    NULL as date_of_birth,
+                    NULL as gender,
+                    u.phone,
+                    u.email,
+                    NULL as address,
+                    'active' as status,
+                    u.created_at,
+                    'user_table' as source
+                FROM users u
+                WHERE u.role = 'patient'
+                AND (u.username LIKE :search
+                    OR u.first_name LIKE :search 
+                    OR u.last_name LIKE :search 
+                    OR u.phone LIKE :search 
+                    OR u.email LIKE :search)
+                AND u.id NOT IN (
+                    SELECT user_id FROM patients WHERE user_id IS NOT NULL
+                )
+                
+                ORDER BY created_at DESC";
+                
+        $this->db->query($sql);
         $this->db->bind(':search', '%' . $search . '%');
         return $this->db->resultSet();
     }
@@ -121,9 +264,15 @@ class Patient {
         return 'PAT-' . date('Y') . '-' . str_pad($number, 3, '0', STR_PAD_LEFT);
     }
     
-    // Get patient count
+    // Get patient count (from both tables)
     public function getPatientCount() {
-        $this->db->query("SELECT COUNT(*) as count FROM patients WHERE status = 'active'");
+        $sql = "SELECT 
+                    (SELECT COUNT(*) FROM patients WHERE status = 'active') +
+                    (SELECT COUNT(*) FROM users WHERE role = 'patient' 
+                     AND id NOT IN (SELECT user_id FROM patients WHERE user_id IS NOT NULL))
+                as count";
+        
+        $this->db->query($sql);
         $result = $this->db->single();
         return $result->count;
     }
