@@ -38,4 +38,53 @@ class Controller {
         }
         return null;
     }
+    
+    // RBAC: Check if user has specific role
+    public function hasRole($role) {
+        if (!$this->isLoggedIn()) {
+            return false;
+        }
+        
+        if (is_array($role)) {
+            return in_array($_SESSION['role'], $role);
+        }
+        
+        return $_SESSION['role'] === $role;
+    }
+    
+    // RBAC: Require authentication
+    public function requireAuth() {
+        if (!$this->isLoggedIn()) {
+            $this->redirect('auth/login');
+        }
+    }
+    
+    // RBAC: Require specific role(s)
+    public function requireRole($role) {
+        $this->requireAuth();
+        
+        if (!$this->hasRole($role)) {
+            // Redirect based on actual role
+            if ($_SESSION['role'] === 'patient') {
+                $this->redirect('patient_dashboard');
+            } else {
+                $this->redirect('home');
+            }
+        }
+    }
+    
+    // RBAC: Check if user is admin
+    public function isAdmin() {
+        return $this->hasRole('admin');
+    }
+    
+    // RBAC: Check if user is patient
+    public function isPatient() {
+        return $this->hasRole('patient');
+    }
+    
+    // RBAC: Check if user is staff (admin, dentist, receptionist)
+    public function isStaff() {
+        return $this->hasRole(['admin', 'dentist', 'receptionist']);
+    }
 }

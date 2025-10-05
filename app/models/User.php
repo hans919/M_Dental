@@ -39,6 +39,29 @@ class User {
         return $this->db->single();
     }
     
+    // Alias for findUserByUsername
+    public function findByUsername($username) {
+        return $this->findUserByUsername($username);
+    }
+    
+    // Create user
+    public function create($data) {
+        $this->db->query("INSERT INTO users (username, password, email, first_name, last_name, role) 
+                         VALUES (:username, :password, :email, :first_name, :last_name, :role)");
+        
+        $this->db->bind(':username', $data['username']);
+        $this->db->bind(':password', $data['password']);
+        $this->db->bind(':email', $data['email']);
+        $this->db->bind(':first_name', $data['first_name']);
+        $this->db->bind(':last_name', $data['last_name']);
+        $this->db->bind(':role', $data['role']);
+        
+        if ($this->db->execute()) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
+    
     // Find user by email
     public function findUserByEmail($email) {
         $this->db->query("SELECT * FROM users WHERE email = :email");

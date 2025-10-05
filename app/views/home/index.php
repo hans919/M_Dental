@@ -85,10 +85,15 @@
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                                         <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--gradient-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem;">
-                                            <?php echo strtoupper(substr($appointment->patient_first_name, 0, 1) . substr($appointment->patient_last_name, 0, 1)); ?>
+                                            <?php 
+                                            $name = $appointment->patient_name ?? 'N A';
+                                            $parts = explode(' ', $name);
+                                            echo strtoupper(substr($parts[0] ?? 'N', 0, 1) . substr($parts[1] ?? 'A', 0, 1)); 
+                                            ?>
                                         </div>
                                         <div>
-                                            <div style="font-weight: 600;"><?php echo $appointment->patient_first_name . ' ' . $appointment->patient_last_name; ?></div>
+                                            <div style="font-weight: 600;"><?php echo $appointment->patient_name ?? 'N/A'; ?></div>
+                                            <div style="font-size: 0.875rem; color: hsl(var(--muted-foreground));"><?php echo $appointment->patient_email ?? ''; ?></div>
                                         </div>
                                     </div>
                                 </td>
@@ -110,11 +115,30 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge badge-<?php 
-                                        echo $appointment->status == 'completed' ? 'success' : 
-                                            ($appointment->status == 'cancelled' ? 'error' : 'primary'); 
-                                    ?>">
-                                        <?php echo ucfirst($appointment->status); ?>
+                                    <?php
+                                    $statusClass = '';
+                                    $statusText = ucfirst(str_replace('_', ' ', $appointment->status));
+                                    
+                                    switch($appointment->status) {
+                                        case 'pending':
+                                            $statusClass = 'warning';
+                                            break;
+                                        case 'approved':
+                                        case 'confirmed':
+                                        case 'completed':
+                                            $statusClass = 'success';
+                                            break;
+                                        case 'declined':
+                                        case 'cancelled_by_patient':
+                                        case 'cancelled_by_clinic':
+                                            $statusClass = 'error';
+                                            break;
+                                        default:
+                                            $statusClass = 'primary';
+                                    }
+                                    ?>
+                                    <span class="badge badge-<?php echo $statusClass; ?>">
+                                        <?php echo $statusText; ?>
                                     </span>
                                 </td>
                             </tr>

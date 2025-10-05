@@ -3,10 +3,8 @@
 class HomeController extends Controller {
     
     public function __construct() {
-        // Check if user is logged in, if not redirect to login
-        if (!$this->isLoggedIn() && $_SERVER['REQUEST_URI'] != '/dl/public/auth/login') {
-            $this->redirect('auth/login');
-        }
+        // RBAC: Require staff role (admin, dentist, receptionist)
+        $this->requireRole(['admin', 'dentist', 'receptionist']);
     }
     
     public function index() {
@@ -21,7 +19,7 @@ class HomeController extends Controller {
             'patient_count' => $patientModel->getPatientCount(),
             'dentist_count' => $dentistModel->getDentistCount(),
             'today_appointments' => $appointmentModel->getTodayAppointmentCount(),
-            'recent_appointments' => $appointmentModel->getAppointments(5),
+            'recent_appointments' => $appointmentModel->getAllAppointmentsWithUsers(5),
             'recent_patients' => $patientModel->getPatients(5)
         ];
         

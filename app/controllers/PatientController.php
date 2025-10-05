@@ -3,9 +3,8 @@
 class PatientController extends Controller {
     
     public function __construct() {
-        if (!$this->isLoggedIn()) {
-            $this->redirect('auth/login');
-        }
+        // RBAC: Require staff role (admin, dentist, receptionist)
+        $this->requireRole(['admin', 'dentist', 'receptionist']);
     }
     
     public function index() {

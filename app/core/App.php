@@ -1,17 +1,31 @@
 <?php
 
 class App {
-    protected $controller = 'HomeController';
+    protected $controller = 'LandingController';
     protected $method = 'index';
     protected $params = [];
     
     public function __construct() {
+        // Start session only if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         $url = $this->parseUrl();
         
-        // Check for controller
-        if (isset($url[0]) && file_exists('../app/controllers/' . ucfirst($url[0]) . 'Controller.php')) {
-            $this->controller = ucfirst($url[0]) . 'Controller';
-            unset($url[0]);
+        // If no URL and user is logged in, redirect to home
+        if (empty($url) && isset($_SESSION['user'])) {
+            $this->controller = 'HomeController';
+        }
+        
+        // Check for controller (handle underscore to camelCase conversion)
+        if (isset($url[0])) {
+            // Convert patient_dashboard to PatientDashboard
+            $controllerName = str_replace('_', '', ucwords($url[0], '_'));
+            if (file_exists('../app/controllers/' . $controllerName . 'Controller.php')) {
+                $this->controller = $controllerName . 'Controller';
+                unset($url[0]);
+            }
         }
         
         require_once '../app/controllers/' . $this->controller . '.php';
