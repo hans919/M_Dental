@@ -7,7 +7,7 @@ define('DB_NAME', 'dental_clinic');
 
 // Application Configuration
 define('APP_NAME', 'Dental Clinic System');
-define('APP_URL', 'http://localhost/dl');
+define('APP_URL', 'http://localhost/M_Dental');
 define('ROOT', dirname(__DIR__));
 
 // Path Configuration

@@ -20,10 +20,10 @@ class AuthController extends Controller {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $userModel = $this->model('User');
             
-            $username = trim($_POST['username']);
+            $email = trim($_POST['email']);
             $password = trim($_POST['password']);
             
-            $user = $userModel->login($username, $password);
+            $user = $userModel->login($email, $password);
             
             if ($user) {
                 $_SESSION['user_id'] = $user->id;
@@ -42,7 +42,7 @@ class AuthController extends Controller {
             } else {
                 $data = [
                     'title' => 'Login',
-                    'error' => 'Invalid username or password'
+                    'error' => 'Invalid email or password'
                 ];
                 $this->view('auth/login', $data);
             }
